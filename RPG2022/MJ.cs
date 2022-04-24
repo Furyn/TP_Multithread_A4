@@ -46,11 +46,9 @@ namespace RPG2022
                         table.ResetPartie();
                         table.Demarrer();
                         wantToStart = false;
-                    }
-
-                    if (table.PartieTerminer() && table.QueueIsEmpty())
+                    }else if (table.PartieTerminer())
                     {
-                        end = true;
+                        table.ResetPartie();
                     }
                 }
 
