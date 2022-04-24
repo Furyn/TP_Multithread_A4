@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace RPG2022
 {
     class MJ
     {
         public Table table;
+        private bool wantToStart = false;
+        private int nbJoueur = 0;
 
         public MJ(Table table)
         {
@@ -20,17 +23,53 @@ namespace RPG2022
             {
                 lock (table)
                 {
-                    if (table.GetCountPlayer() == Config.MAX_JOUEURS && !table.PartieEnCours())
+                    if (table.GetCountPlayer() == Config.MAX_JOUEURS && (!table.PartieEnCours() || (table.QueueIsEmpty() && table.GetCountPlayer() > 0)))
                     {
-                        table.Demarrer();
+                        wantToStart = true;
+                        nbJoueur = table.GetCountPlayer();
                     }
 
-                    if (table.PartieTerminer() )
+                    if (table.PartieEnCours() && table.PlaceDisponible())
+                    {
+                        Joueur j = table.GetFirstPlayerInQueue();
+                        if (j != null)
+                        {
+                            j.addedToGame = true;
+                            j.inQueue = false;
+                            table.AjouterJoueur(j);
+                            Console.WriteLine("Add joueur : " + j.Name + " / wait time = " + j.time);
+                        }
+                    }
+
+                    if ( (table.PartieTerminer() && !table.QueueIsEmpty()) || (!table.PartieEnAttente() && table.AllPlayerNotStarted() && (!table.PlaceDisponible() || (table.QueueIsEmpty() && table.GetCountPlayer() > 0)) ) )
                     {
                         table.ResetPartie();
+                        table.Demarrer();
+                        wantToStart = false;
+                    }
+
+                    if (table.PartieTerminer() && table.QueueIsEmpty())
+                    {
+                        end = true;
+                    }
+                }
+
+                if (wantToStart)
+                {
+                    wantToStart = false;
+                    Thread.Sleep(1000);
+                    lock (table)
+                    {
+                        if (table.PartieEnAttente() && nbJoueur == table.GetCountPlayer())
+                        {
+                            table.Demarrer();
+                            table.StartAllPlayerToPlay();
+                        }
                     }
                 }
             }
+
+            Console.WriteLine("MJ ENDED");
         }
     }
 }

@@ -35,6 +35,33 @@ namespace RPG2022
             queue_waiting.Enqueue(joueur);
         }
 
+        public bool AllPlayerNotStarted()
+        {
+            bool notStarted = true;
+            foreach (Joueur j in joueurs)
+            {
+                if (j.startGame)
+                {
+                    notStarted = false;
+                }
+            }
+
+            return notStarted;
+        }
+
+        public void StartAllPlayerToPlay()
+        {
+            foreach (Joueur j in joueurs)
+            {
+                j.startGame = true;
+            }
+        }
+
+        public bool QueueIsEmpty()
+        {
+            return queue_waiting.IsEmpty;
+        }
+
         public Joueur GetFirstPlayerInQueue()
         {
             queue_waiting.TryDequeue(out Joueur j);
@@ -47,6 +74,7 @@ namespace RPG2022
             if (status != StatusPartie.Attente)
                 throw new Exception("Partie déjà commencée");
 
+            Console.WriteLine("");
             Console.WriteLine("START");
             status = StatusPartie.EnCours;
         }
@@ -69,7 +97,9 @@ namespace RPG2022
 
         public void ResetPartie()
         {
+            Console.WriteLine("RESET GAME");
             status = StatusPartie.Attente;
+            StartAllPlayerToPlay();
         }
 
         public bool PartieEnCours()

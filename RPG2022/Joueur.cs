@@ -8,6 +8,10 @@ namespace RPG2022
         static Random rand = new Random();
         public bool addedToGame = false;
         public bool inQueue = false;
+        public bool startGame = false;
+
+        [ThreadStatic]
+        public int time = 0;
 
         public Joueur(string name): base(name, Config.PV_JOUEUR)
         { 
@@ -17,50 +21,49 @@ namespace RPG2022
         {
             Table table = obj as Table;
             bool end = false;
-            int time = 0;
 
             while (!end)
             {
-                if (!addedToGame || inQueue)
+                lock (this)
                 {
-                    lock (table)
+                    if (!addedToGame && !inQueue && !startGame)
                     {
-                        if (!inQueue && table.PartieEnAttente() && table.PlaceDisponible() && !table.PartieEnCours())
+                        lock (table)
                         {
                             time = rand.Next(5, 15);
-
-                            if (!table.PartieEnCours())
+                            if (table.PlaceDisponible())
                             {
-                                table.AjouterJoueur(this);
-                                addedToGame = true;
-                                inQueue = false;
-                                Console.WriteLine("Add joueur : " + this.Name + " / wait time = " + time);
+                                if (table.PartieEnAttente())
+                                {
+                                    table.AjouterJoueur(this);
+                                    addedToGame = true;
+                                    Console.WriteLine("Add joueur : " + this.Name + " / wait time = " + time);
+                                }
+                            }
+                            else
+                            {
+                                table.AddPlayerInQueue(this);
+                                inQueue = true;
+                                Console.WriteLine("Add joueur in queue : " + this.Name);
                             }
 
                         }
-                        else if (!inQueue && table.PartieEnCours() && table.PlaceDisponible() && table.PartieEnCours())
-                        {
-                            table.AddPlayerInQueue(this);
-                            inQueue = true;
-                            Console.WriteLine("Add joueur in queue : " + this.Name);
-                        }
-
                     }
                 }
 
-                if (addedToGame && !inQueue)
+                if (startGame)
                 {
                     Thread.Sleep(time * 1000);
                     lock (table)
                     {
                         table.DepartJoueur(this);
                     }
-                    Console.WriteLine("Kick joueur : " + this.Name);
 
                     end = true;
                 }
+                
             }
-
+            Console.WriteLine("End thread joueur : " + this.Name);
         }
     }
 }
