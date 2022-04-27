@@ -29,7 +29,7 @@ namespace RPG2022
                         nbJoueur = table.GetCountPlayer();
                     }
 
-                    if (table.PartieEnCours() && table.PlaceDisponible())
+                    if ( (table.PartieEnCours() || table.PartieFinaliser())  && table.PlaceDisponible())
                     {
                         Joueur j = table.GetFirstPlayerInQueue();
                         if (j != null)
@@ -41,7 +41,7 @@ namespace RPG2022
                         }
                     }
 
-                    if ( (table.PartieTerminer() && !table.QueueIsEmpty()) || (!table.PartieEnAttente() && table.AllPlayerNotStarted() && (!table.PlaceDisponible() || (table.QueueIsEmpty() && table.GetCountPlayer() > 0)) ) )
+                    if ( (table.PartieTerminer() && !table.QueueIsEmpty()) || ( !table.PartieEnAttente() && !table.PartieFinaliser() && table.AllPlayerNotStarted() && (!table.PlaceDisponible() || (table.QueueIsEmpty() && table.GetCountPlayer() > 0)) ) )
                     {
                         table.ResetPartie();
                         table.Demarrer();
@@ -52,7 +52,7 @@ namespace RPG2022
                     }
                 }
 
-                if (wantToStart)
+                if (wantToStart && !table.PartieFinaliser())
                 {
                     wantToStart = false;
                     Thread.Sleep(1000);
@@ -63,6 +63,20 @@ namespace RPG2022
                             table.Demarrer();
                             table.StartAllPlayerToPlay();
                         }
+                    }
+                }
+
+                lock (table)
+                {
+                    if (table.PartieFinaliser() && table.AllPlayerNotStarted())
+                    {
+                        Console.WriteLine("SWITCH MJ");
+                        MJ mj = new MJ(table);
+                        Thread childThreadMJ = new Thread(mj.MJThread);
+                        childThreadMJ.Start();
+                        table.ResetPartie();
+                        table.Demarrer();
+                        end = true;
                     }
                 }
             }

@@ -104,7 +104,7 @@ namespace RPG2022
 
         public bool PartieEnCours()
         {
-            return status == StatusPartie.EnCours || status == StatusPartie.Finalisation;
+            return status == StatusPartie.EnCours;
         }
 
         public bool PartieEnAttente()
@@ -115,6 +115,11 @@ namespace RPG2022
         public bool PartieTerminer()
         {
             return status == StatusPartie.Terminee;
+        }
+
+        public bool PartieFinaliser()
+        {
+            return status == StatusPartie.Finalisation;
         }
 
         public bool PlaceDisponible()
@@ -147,7 +152,7 @@ namespace RPG2022
 
         public void AjouterJoueur(Joueur joueur)
         {
-            if (status != StatusPartie.Attente && status != StatusPartie.EnCours)
+            if (status != StatusPartie.Attente && status != StatusPartie.EnCours && status != StatusPartie.Finalisation)
                 throw new Exception("La partie n'est pas en cours.");
 
             if(joueurs.Count >= Config.MAX_JOUEURS)
