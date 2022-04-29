@@ -77,6 +77,11 @@ namespace RPG2022
             Console.WriteLine("");
             Console.WriteLine("START");
             status = StatusPartie.EnCours;
+
+            if (!MonstreIsAlive())
+            {
+                PlacerMonstre(new Monstre());
+            }
         }
         public void Finaliser()
         {
@@ -137,9 +142,20 @@ namespace RPG2022
                 if (monstreCourant.Pv > 0)
                     throw new Exception("Un monstre est déjà présent et vivant");
             }
+            Console.WriteLine(monstre.Name + "entre en scène");
+
             monstreCourant = monstre;
             monstre.RejoindreTable(this);
-            PublierDansJournal(monstre.Name, "entre en scène");
+            PublierDansJournal(monstre.Name, " entre en scène");
+        }
+
+        public bool MonstreIsAlive()
+        {
+            if (monstreCourant == null)
+            {
+                return false;
+            }
+            return monstreCourant.Pv > 0;
         }
 
         public void ChangerMJ(MJ mj)
