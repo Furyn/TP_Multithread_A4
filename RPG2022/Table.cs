@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace RPG2022
 {
@@ -33,6 +34,18 @@ namespace RPG2022
         public void AddPlayerInQueue(Joueur joueur)
         {
             queue_waiting.Enqueue(joueur);
+        }
+
+        public Joueur GetRandPlayer()
+        {
+            if (joueurs.Count > 0)
+            {
+                Random rand = new Random();
+                int index_player = rand.Next(0, joueurs.Count - 1);
+                return joueurs[index_player];
+            }
+
+            return null;
         }
 
         public bool AllPlayerNotStarted()
@@ -80,7 +93,11 @@ namespace RPG2022
 
             if (!MonstreIsAlive())
             {
-                PlacerMonstre(new Monstre());
+                Monstre monstre = new Monstre();
+                PlacerMonstre(monstre);
+
+                Thread monsterThread = new Thread(monstre.MonstreThread);
+                monsterThread.Start();
             }
         }
         public void Finaliser()
@@ -195,6 +212,11 @@ namespace RPG2022
                     journal.Clear();
                 journal.Add("[" + auteur + "] " + message);
             }
+        }
+
+        public void JoueurAttaque(Joueur j)
+        {
+            monstreCourant.Attaquer(j);
         }
 
         public string ConsulterJournal()

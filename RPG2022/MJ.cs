@@ -9,6 +9,7 @@ namespace RPG2022
         public Table table;
         private bool wantToStart = false;
         private int nbJoueur = 0;
+        bool end = false;
 
         public MJ(Table table)
         {
@@ -18,7 +19,9 @@ namespace RPG2022
 
         public void MJThread(object obj)
         {
-            bool end = false;
+            Thread switchMJ = new Thread(SwitchMJThread);
+            switchMJ.Start();
+
             while (!end)
             {
                 lock (table)
@@ -37,7 +40,7 @@ namespace RPG2022
                             j.addedToGame = true;
                             j.inQueue = false;
                             table.AjouterJoueur(j);
-                            Console.WriteLine("Add joueur : " + j.Name + " / wait time = " + j.time);
+                            Console.WriteLine("Add joueur : " + j.Name + " / wait time = " + j.timeEnd);
                         }
                     }
 
@@ -70,18 +73,45 @@ namespace RPG2022
                 {
                     if (table.PartieFinaliser() && table.AllPlayerNotStarted())
                     {
-                        Console.WriteLine("SWITCH MJ");
-                        MJ mj = new MJ(table);
-                        Thread childThreadMJ = new Thread(mj.MJThread);
-                        childThreadMJ.Start();
-                        table.ResetPartie();
-                        table.Demarrer();
-                        end = true;
+                        SwitchMJ();
                     }
                 }
             }
 
             Console.WriteLine("MJ ENDED");
+        }
+
+        public void SwitchMJ()
+        {
+            Console.WriteLine("SWITCH MJ");
+            MJ mj = new MJ(table);
+            Thread childThreadMJ = new Thread(mj.MJThread);
+            childThreadMJ.Start();
+            table.ResetPartie();
+            if (!table.QueueIsEmpty())
+            {
+                table.Demarrer();
+            }
+            end = true;
+        }
+
+        public void SwitchMJThread()
+        {
+            while (!end)
+            {
+                if (!table.PartieFinaliser())
+                {
+                    Thread.Sleep(60 * 1000);
+                    if (!table.PartieEnCours())
+                    {
+                        SwitchMJ();
+                    }
+                    else
+                    {
+                        table.Finaliser();
+                    }
+                }
+            }
         }
     }
 }

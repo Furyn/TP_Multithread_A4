@@ -21,9 +21,6 @@ namespace RPG2022
             Thread childThreadMJ = new Thread(mj.MJThread);
             childThreadMJ.Start();
 
-            Thread switchMJ = new Thread(SwitchMJ);
-            switchMJ.Start();
-
             Thread vagues = new Thread(VagueJoueurs);
             vagues.Start();
 
@@ -58,20 +55,6 @@ namespace RPG2022
                 ParameterizedThreadStart threadStart = new ParameterizedThreadStart(new Joueur("J" + (nb_joueurs)).JoueurThread);
                 Thread childThread = new Thread(threadStart);
                 childThread.Start(table);
-            }
-        }
-
-        static void SwitchMJ()
-        {
-            bool end = false;
-            while (!end)
-            {
-                if (!table.PartieFinaliser())
-                {
-                    Thread.Sleep(60 * 1000);
-                    Console.WriteLine("Switch MJ NEXT GAME");
-                    table.Finaliser();
-                }
             }
         }
 

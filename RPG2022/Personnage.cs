@@ -37,8 +37,7 @@ namespace RPG2022
             }
             --Pv;
             table.PublierDansJournal(attaquant.Name, " Attaque " + Name + " (" + Pv +" pv)" );
-            if (Config.TEMPS_ATTAQUE > 0)
-                Thread.Sleep(Config.TEMPS_ATTAQUE);
+            Console.WriteLine(attaquant.Name + " Attaque " + Name + " (" + Pv + " pv)");
             return Pv <= 0;
         }
 
